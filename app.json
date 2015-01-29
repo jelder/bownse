@@ -1,0 +1,21 @@
+{
+  "name": "Bownse",
+  "description": "HTTP web hook multiplexer",
+  "keywords": [
+    "bownse",
+    "go",
+    "heroku",
+    "webhook",
+    "deploy"
+  ],
+  "website": "http://github.com/jelder/bownse",
+  "repository": "http://github.com/jelder/bownse",
+  "scripts": {},
+  "env": {
+    "BUILDPACK_URL": "https://github.com/heroku/heroku-buildpack-go",
+    "SECRET_KEY": {
+      "description": "The basis for the private URL",
+      "generator": "secret"
+    }
+  },
+}
