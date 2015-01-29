@@ -17,5 +17,5 @@
       "description": "The basis for the private URL",
       "generator": "secret"
     }
-  },
+  }
 }
