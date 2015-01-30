@@ -8,11 +8,9 @@ var (
 		"KEY2=val2",
 		"BOOL1=true",
 		"BOOL2=f",
-		"FLOAT1=3.14",
-		"INT1=-1",
-		"UINT1=69",
+		"FLOAT1=-3.14",
 	}
-	testEnv = LoadEnvArrayString(testEnviron)
+	testEnv = MustLoadEnvArrayString(testEnviron)
 )
 
 func TestLoadEnvArrayString(t *testing.T) {
@@ -22,7 +20,10 @@ func TestLoadEnvArrayString(t *testing.T) {
 }
 
 func TestLoadEnvArrayString_safety(t *testing.T) {
-	// TODO
+	_, err := LoadEnvArrayString([]string{"OK=true", "Ok=false"})
+	if err != nil {
+		t.Error(`Expected error, got nil`)
+	}
 }
 
 func TestGetBool(t *testing.T) {
@@ -37,41 +38,15 @@ func TestGetBool(t *testing.T) {
 	}
 }
 
-func TestGetFloat(t *testing.T) {
-	result, err := testEnv.GetFloat("FLOAT1", 64)
-	if err != nil {
-		t.Error(err)
-	}
-	if result != 3.14 {
+func TestGetNumber(t *testing.T) {
+	result := testEnv.GetNumber("FLOAT1", 0)
+	if result != -3.14 {
 		t.Error(`Expected 3.14, got`, result)
 	}
 }
 
-func TestGetFloat_empty(t *testing.T) {
-	result, err := testEnv.GetFloat("FLOAT2", 64)
-	if err != nil {
-		t.Error(err)
-	}
-	if result != 0 {
-		t.Error(`Expected 0, got`, result)
-	}
-}
-
-func TestGetInt(t *testing.T) {
-	result, err := testEnv.GetInt("INT1", 10, 64)
-	if err != nil {
-		t.Error(err)
-	}
-	if result != -1 {
-		t.Error(`Expected -1, got`, result)
-	}
-}
-
-func TestGetInt_empty(t *testing.T) {
-	result, err := testEnv.GetInt("INT2", 10, 64)
-	if err != nil {
-		t.Error(err)
-	}
+func TestGetNumber_empty(t *testing.T) {
+	result := testEnv.GetNumber("FLOAT2", 0)
 	if result != 0 {
 		t.Error(`Expected 0, got`, result)
 	}

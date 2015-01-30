@@ -1,6 +1,7 @@
 package env
 
 import (
+	"errors"
 	"os"
 	"strconv"
 	"strings"
@@ -8,29 +9,39 @@ import (
 
 type EnvMap map[string]string
 
-var (
-	Env EnvMap
-)
-
-func init() {
-	Env = LoadEnv()
+func MustLoadEnv() (env EnvMap) {
+	env, err := LoadEnvArrayString(os.Environ())
+	if err != nil {
+		panic(err)
+	}
+	return env
 }
 
-func LoadEnv() (env EnvMap) {
-	return LoadEnvArrayString(os.Environ())
+func MustLoadEnvArrayString(as []string) (env EnvMap) {
+	env, _ = LoadEnvArrayString(as)
+	return env
 }
 
-func LoadEnvArrayString(as []string) EnvMap {
+func LoadEnvArrayString(as []string) (env EnvMap, err error) {
 	keys := make(map[string]bool)
-	env := EnvMap{}
+	env = EnvMap{}
 	for _, e := range as {
 		pair := strings.SplitN(e, "=", 2)
 		if _, dupe := keys[strings.ToUpper(pair[0])]; dupe {
-			panic("Environment contains multiple keys differing only by letter case: " + pair[0])
+			err = errors.New("Environment contains multiple keys differing only by letter case: " + pair[0])
+			return nil, err
 		}
 		env[pair[0]] = pair[1]
 	}
-	return env
+	return env, err
+}
+
+func (env EnvMap) Get(key string, _default string) (val string) {
+	val = env[key]
+	if val == "" {
+		return _default
+	}
+	return val
 }
 
 func (env EnvMap) GetBool(key string) bool {
@@ -41,26 +52,14 @@ func (env EnvMap) GetBool(key string) bool {
 	return val
 }
 
-func (env EnvMap) GetFloat(key string, bitSize int) (float64, error) {
+func (env EnvMap) GetNumber(key string, _default float64) float64 {
 	val := env[key]
 	if val == "" {
-		return 0, nil
+		return _default
 	}
-	return strconv.ParseFloat(val, bitSize)
-}
-
-func (env EnvMap) GetInt(key string, base int, bitSize int) (int64, error) {
-	val := env[key]
-	if val == "" {
-		return 0, nil
+	float, err := strconv.ParseFloat(val, 64)
+	if err != nil {
+		return _default
 	}
-	return strconv.ParseInt(val, base, bitSize)
-}
-
-func (env EnvMap) GetUint(key string, base int, bitSize int) (uint64, error) {
-	val := env[key]
-	if val == "" {
-		return 0, nil
-	}
-	return strconv.ParseUint(val, base, bitSize)
+	return float
 }
