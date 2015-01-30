@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/jelder/bownse/env"
 	"log"
 	neturl "net/url"
 	"os"
@@ -8,29 +9,34 @@ import (
 	"strings"
 )
 
+type Config struct {
+	Secret        string
+	ListenAddress string
+	TargetURLs    []string
+}
+
 var (
 	targetUrlRegexp = regexp.MustCompile(`^(\w+)_URL$`)
-	Secret          string
-	ListenAddress   string
-	TargetUrls      []string
+	config          Config
 )
 
 func init() {
-	Secret = GetSecret()
-	ListenAddress = GetListenAddress()
-	TargetUrls = GetTargetUrls()
+	ENV := MustLoadEnv()
+	config.Secret = getSecret()
+	config.ListenAddress = ENV.Get
+	config.TargetURLs = getTargetURLs
 }
 
-func GetSecret() (secret string) {
-	secret = os.Getenv("SECRET")
+func getSecret() (secret string) {
+	secret = ENV["SECRET"]
 	if len(secret) < 30 {
 		log.Fatal("SECRET is much too short; refusing to use it.")
 	}
 	return secret
 }
 
-func GetListenAddress() string {
-	string := os.Getenv("PORT")
+func getListenAddress() string {
+	string = ENV["PORT"]
 	if string == "" {
 		return ":8080"
 	} else {
@@ -38,8 +44,8 @@ func GetListenAddress() string {
 	}
 }
 
-func GetTargetUrls() (urls []string) {
-	for _, e := range os.Environ() {
+func getTargetURLs() (urls []string) {
+	for _, e := range ENV {
 		pair := strings.Split(e, "=")
 		if url := CheckEnvUrl(pair); url != "" {
 			urls = append(urls, pair[1])
