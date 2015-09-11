@@ -12,9 +12,8 @@ func init() {
 }
 
 func handleSlack() {
-	for {
-		payload := <-slack
-		// TODO
-		// resp, err := http.PostForm(ENV["SLACK_URL"], url.Values{}
-	}
+	// for {
+	// 	payload := <-slack
+	// 	resp, err := http.PostForm(ENV["SLACK_URL"], url.Values{}
+	// }
 }
