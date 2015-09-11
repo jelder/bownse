@@ -25,9 +25,9 @@ func init() {
 }
 
 func getSecret() (secret string) {
-	secret = ENV["SECRET"]
+	secret = ENV["SECRET_KEY"]
 	if len(secret) < 30 {
-		log.Fatal("SECRET is much too short; refusing to use it.")
+		log.Fatal("SECRET_KEY is much too short; refusing to use it.")
 	}
 	return secret
 }
