@@ -24,7 +24,7 @@ func init() {
 }
 
 func NewRelicIsConfigured() bool {
-	return ENV["NEW_RELIC_APP_NAME"] != "" && ENV["NEW_RELIC_ID"] != "" && ENV["NEW_RELIC_LICENSE_KEY"] != ""
+	return ENV["NEW_RELIC_APP_NAME"] != "" && ENV["NEW_RELIC_ID"] != "" && ENV["NEW_RELIC_API_KEY"] != ""
 
 }
 
@@ -48,7 +48,7 @@ func handleNewRelic() {
 
 		client := &http.Client{}
 		r, _ := http.NewRequest("POST", urlStr, bytes.NewBufferString(params.Encode()))
-		r.Header.Add("x-api-key", ENV["NEW_RELIC_LICENSE_KEY"])
+		r.Header.Add("x-api-key", ENV["NEW_RELIC_API_KEY"])
 		r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 		r.Header.Add("Content-Length", strconv.Itoa(len(params.Encode())))
 
