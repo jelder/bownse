@@ -33,7 +33,7 @@ func MuxHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Printf("Recieved Heroky Deploy Webhook: %v\n", herokuWebhookPayload)
+	fmt.Printf("Recieved Heroku Deploy Webhook: %v\n", herokuWebhookPayload)
 	if NewRelicIsConfigured() {
 		newrelic <- herokuWebhookPayload
 	}
