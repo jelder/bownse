@@ -8,13 +8,9 @@ import (
 	"github.com/phyber/negroni-gzip/gzip"
 	// "log"
 	"net/http"
-	"time"
 )
 
 var (
-	client = &http.Client{
-		Timeout: 5 * time.Second,
-	}
 	decoder = schema.NewDecoder()
 )
 
