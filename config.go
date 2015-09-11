@@ -1,12 +1,9 @@
 package main
 
 import (
-	"github.com/jelder/bownse/env"
+	. "github.com/jelder/bownse/env"
 	"log"
-	neturl "net/url"
-	"os"
 	"regexp"
-	"strings"
 )
 
 type Config struct {
@@ -18,13 +15,13 @@ type Config struct {
 var (
 	targetUrlRegexp = regexp.MustCompile(`^(\w+)_URL$`)
 	config          Config
+	ENV             EnvMap
 )
 
 func init() {
-	ENV := MustLoadEnv()
+	ENV = MustLoadEnv()
 	config.Secret = getSecret()
-	config.ListenAddress = ENV.Get
-	config.TargetURLs = getTargetURLs
+	config.ListenAddress = getListenAddress()
 }
 
 func getSecret() (secret string) {
@@ -35,34 +32,11 @@ func getSecret() (secret string) {
 	return secret
 }
 
-func getListenAddress() string {
-	string = ENV["PORT"]
-	if string == "" {
+func getListenAddress() (port string) {
+	port = ENV["PORT"]
+	if port == "" {
 		return ":8080"
 	} else {
-		return ":" + string
+		return ":" + port
 	}
-}
-
-func getTargetURLs() (urls []string) {
-	for _, e := range ENV {
-		pair := strings.Split(e, "=")
-		if url := CheckEnvUrl(pair); url != "" {
-			urls = append(urls, pair[1])
-		}
-	}
-	return urls
-}
-
-func CheckEnvUrl(pair []string) string {
-	if targetUrlRegexp.MatchString(pair[0]) {
-		url, err := neturl.Parse(pair[1])
-		if err != nil {
-			return ""
-		}
-		if url.IsAbs() && (url.Scheme == "http" || url.Scheme == "https") {
-			return url.String()
-		}
-	}
-	return ""
 }
