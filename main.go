@@ -1,16 +1,13 @@
 package main
 
 import (
-	"bytes"
-	// "fmt"
+	"fmt"
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/schema"
 	"github.com/phyber/negroni-gzip/gzip"
-	"github.com/rs/cors"
-	"io/ioutil"
-	"log"
+	// "log"
 	"net/http"
-	"runtime"
 	"time"
 )
 
@@ -18,37 +15,42 @@ var (
 	client = &http.Client{
 		Timeout: 5 * time.Second,
 	}
+	decoder = schema.NewDecoder()
 )
 
 func MuxHandler(w http.ResponseWriter, r *http.Request) {
-	if len(TargetUrls) < 1 {
-		http.NotFound(w, r)
+	err := r.ParseForm()
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	body, _ := ioutil.ReadAll(r.Body)
-	for _, url := range TargetUrls {
-		go Repost(url, body)
-	}
-	w.WriteHeader(201)
-}
 
-func Repost(url string, payload []byte) {
-	log.Println(url, len(payload), "bytes")
-	client.Post(url, "application/x-www-form-urlencoded", bytes.NewReader(payload))
+	herokuWebhookPayload := new(HerokuWebhookPayload)
+	err = decoder.Decode(herokuWebhookPayload, r.PostForm)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	fmt.Printf("Recieved Heroky Deploy Webhook: %v\n", herokuWebhookPayload)
+	if NewRelicIsConfigured() {
+		newrelic <- herokuWebhookPayload
+	}
+	if HoneybadgerIsConfigured() {
+		honeybadger <- herokuWebhookPayload
+	}
+
+	w.WriteHeader(http.StatusAccepted)
 }
 
 func main() {
-	runtime.GOMAXPROCS(runtime.NumCPU())
-
 	r := mux.NewRouter()
-	r.HandleFunc("/"+Secret, MuxHandler).Methods("POST")
+	r.HandleFunc("/"+config.Secret, MuxHandler).Methods("POST")
 	http.Handle("/", r)
 
 	n := negroni.Classic()
 	n.Use(gzip.Gzip(gzip.DefaultCompression))
-	n.Use(cors.New(cors.Options{
-		AllowedOrigins: []string{"*"},
-	}))
 	n.UseHandler(r)
-	n.Run(ListenAddress)
+	n.Run(config.ListenAddress)
 }
