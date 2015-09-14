@@ -11,14 +11,8 @@ import (
 	"strconv"
 )
 
-var (
-	newrelic = make(chan *HerokuWebhookPayload)
-)
-
 func init() {
-	if NewRelicIsConfigured() {
-		go handleNewRelic()
-	} else {
+	if !NewRelicIsConfigured() {
 		fmt.Println("NewRelic is not fully configured.")
 	}
 }
@@ -28,37 +22,21 @@ func NewRelicIsConfigured() bool {
 
 }
 
-func handleNewRelic() {
-	for {
-		payload := <-newrelic
-		apiUrl := "https://api.newrelic.com/"
-		resource := "deployments.xml"
-		params := url.Values{
-			"deployment[app_name]":       {ENV["NEW_RELIC_APP_NAME"]},
-			"deployment[application_id]": {ENV["NEW_RELIC_ID"]},
-			"deployment[user]":           {payload.User},
-			"deployment[description]":    {""},
-			"deployment[changelog]":      {""},
-			"deployment[revision]":       {payload.Head},
-		}
-
-		u, _ := url.ParseRequestURI(apiUrl)
-		u.Path = resource
-		urlStr := fmt.Sprintf("%v", u)
-
-		client := &http.Client{}
-		r, _ := http.NewRequest("POST", urlStr, bytes.NewBufferString(params.Encode()))
-		r.Header.Add("x-api-key", ENV["NEW_RELIC_API_KEY"])
-		r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-		r.Header.Add("Content-Length", strconv.Itoa(len(params.Encode())))
-
-		resp, err := client.Do(r)
-		if err == nil {
-			fmt.Printf("NewRelic: %v\n", resp)
-		} else {
-			fmt.Printf("NewRelic Error: %v\n", err)
-			fmt.Printf("NewRelic Params: %v\n", params)
-		}
-
+func NewRelicRequest(payload *HerokuWebhookPayload) *http.Request {
+	urlStr := "https://api.newrelic.com/deployments.xml"
+	params := url.Values{
+		"deployment[app_name]":       {ENV["NEW_RELIC_APP_NAME"]},
+		"deployment[application_id]": {ENV["NEW_RELIC_ID"]},
+		"deployment[user]":           {payload.User},
+		"deployment[description]":    {""},
+		"deployment[changelog]":      {""},
+		"deployment[revision]":       {payload.Head},
 	}
+
+	req, _ := http.NewRequest("POST", urlStr, bytes.NewBufferString(params.Encode()))
+	req.Header.Add("x-api-key", ENV["NEW_RELIC_API_KEY"])
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Content-Length", strconv.Itoa(len(params.Encode())))
+
+	return req
 }
