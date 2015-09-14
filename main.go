@@ -6,7 +6,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	"github.com/phyber/negroni-gzip/gzip"
-	// "log"
 	"net/http"
 )
 
@@ -42,6 +41,12 @@ func MuxHandler(w http.ResponseWriter, r *http.Request) {
 	if HoneybadgerIsConfigured() {
 		go func() {
 			handleOutboundRequest("Honeybadger", HoneybadgerRequest(herokuWebhookPayload))
+		}()
+	}
+
+	if SlackIsConfigured() {
+		go func() {
+			handleOutboundRequest("Slack", SlackRequest(herokuWebhookPayload))
 		}()
 	}
 

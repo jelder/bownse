@@ -3,17 +3,87 @@
 
 package main
 
-var (
-	slack = make(chan *HerokuWebhookPayload)
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"strconv"
 )
 
 func init() {
-	go handleSlack()
+	if !SlackIsConfigured() {
+		fmt.Println("Slack is not configured.")
+	}
 }
 
-func handleSlack() {
-	// for {
-	// 	payload := <-slack
-	// 	resp, err := http.PostForm(ENV["SLACK_URL"], url.Values{}
-	// }
+func SlackIsConfigured() bool {
+	return ENV["SLACK_URL"] != ""
+}
+
+type slackMessage struct {
+	Text        string            `json:"text,omitempty"`
+	UserName    string            `json:"username,omitempty"`
+	IconUrl     string            `json:"icon_url,omitempty"`
+	IconEmoji   string            `json:"icon_emoji,omitempty"`
+	Attachments []slackAttachment `json:"attachments,omitempty"`
+}
+
+type slackAttachment struct {
+	Fallback   string       `json:"fallback,omitempty"`
+	Color      string       `json:"color,omitempty"`
+	Pretext    string       `json:"pretext,omitempty"`
+	AuthorName string       `json:"author_name,omitempty"`
+	AuthorLink string       `json:"author_link,omitempty"`
+	AuthorIcon string       `json:"author_icon,omitempty"`
+	Title      string       `json:"title,omitempty"`
+	TitleLink  string       `json:"title_link,omitempty"`
+	Text       string       `json:"text,omitempty"`
+	Fields     []slackField `json:"fields,omitempty"`
+	ImageThumb string       `json:"image_thumb,omitempty"`
+	ImageUrl   string       `json:"image_url,omitempty"`
+}
+
+type slackField struct {
+	Title string `json:"title"`
+	Value string `json:"value"`
+	Short bool   `json:"short"`
+}
+
+func SlackRequest(payload *HerokuWebhookPayload) *http.Request {
+	j := slackMessage{
+		UserName:  "Heroku Deployment",
+		IconUrl:   "https://d1ic07fwm32hlr.cloudfront.net/images/favicon.ico",
+		IconEmoji: ":heroku:",
+		Attachments: []slackAttachment{
+			{
+				Fallback:   payload.App,
+				Color:      "#430098",
+				AuthorName: payload.User,
+				Text:       payload.GitLog,
+				Title:      fmt.Sprintf("%s %s", payload.App, payload.Release),
+				TitleLink:  payload.Url,
+				Fields: []slackField{
+					{
+						Title: "Previous Commit",
+						Value: payload.PrevHead,
+						Short: true,
+					},
+					{
+						Title: "Current Commit",
+						Value: payload.Head,
+						Short: true,
+					},
+				},
+			},
+		},
+	}
+
+	jsonStr, _ := json.MarshalIndent(j, "", "  ")
+	fmt.Printf("%s\n", jsonStr)
+	req, _ := http.NewRequest("POST", ENV["SLACK_URL"], bytes.NewBuffer(jsonStr))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Add("Content-Length", strconv.Itoa(len(jsonStr)))
+
+	return req
 }
