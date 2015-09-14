@@ -16,7 +16,6 @@ var (
 )
 
 func MuxHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("Raw Payload: %v\n", r)
 	err := r.ParseForm()
 
 	if err != nil {
@@ -27,6 +26,7 @@ func MuxHandler(w http.ResponseWriter, r *http.Request) {
 	herokuWebhookPayload := new(HerokuWebhookPayload)
 	err = decoder.Decode(herokuWebhookPayload, r.PostForm)
 	if err != nil {
+		fmt.Printf("Raw Payload: %v\n", r.PostForm)
 		http.Error(w, err.Error(), 422)
 		return
 	}
