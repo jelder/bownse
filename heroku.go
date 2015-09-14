@@ -18,6 +18,7 @@ type HerokuWebhookPayload struct {
 	PrevHead string `schema:"prev_head"`
 	GitLog   string `schema:"git_log"`
 	Release  string `schema:"release"`
+	AppUUID  string `schema:"app_uuid"`
 }
 
 var (
