@@ -11,7 +11,9 @@ import (
 )
 
 var (
-	decoder = schema.NewDecoder()
+	decoder  = schema.NewDecoder()
+	client   = &http.Client{}
+	outbound = make(chan *http.Request)
 )
 
 func MuxHandler(w http.ResponseWriter, r *http.Request) {
@@ -30,17 +32,33 @@ func MuxHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Printf("Recieved Heroku Deploy Webhook: %v\n", herokuWebhookPayload)
+
 	if NewRelicIsConfigured() {
-		newrelic <- herokuWebhookPayload
+		go func() {
+			handleOutboundRequest("NewRelic", NewRelicRequest(herokuWebhookPayload))
+		}()
 	}
+
 	if HoneybadgerIsConfigured() {
-		honeybadger <- herokuWebhookPayload
+		go func() {
+			handleOutboundRequest("Honeybadger", HoneybadgerRequest(herokuWebhookPayload))
+		}()
 	}
 
 	w.WriteHeader(http.StatusAccepted)
 }
 
+func handleOutboundRequest(service string, req *http.Request) {
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Printf("Error: %s %v\n", service, err)
+	} else {
+		fmt.Printf("OK: %s %v\n", service, resp)
+	}
+}
+
 func main() {
+
 	r := mux.NewRouter()
 	r.HandleFunc("/"+config.Secret, MuxHandler).Methods("POST")
 	http.Handle("/", r)
