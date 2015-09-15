@@ -11,12 +11,6 @@ Heroku doesn't expose (as far as I can tell) the mapping of app name to GitHub R
 heroku config:set GITHUB_REPO_myapp_production=jelder/myapp             --app my-bownse-instance
 ```
 
-If your app deploying from something other than `master`, you can configure that, too.
-
-```bash
-heroku config:set GITHUB_BRANCH_myapp_production=production             --app my-bownse-instance
-```
-
 In the future, we may support the GitHub Deployment Status API. Here's how that will work.
 
 ```bash
