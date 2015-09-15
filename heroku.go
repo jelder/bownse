@@ -16,6 +16,7 @@ var (
 	decoder          = schema.NewDecoder()
 	stagingRegexp    = regexp.MustCompile(`staging`)
 	productionRegexp = regexp.MustCompile(`production|\bprod\b`)
+	heads            = make(map[string]string)
 )
 
 func init() {
@@ -41,6 +42,10 @@ func ParseWebhook(r *http.Request) (payload *HerokuWebhookPayload, err error) {
 	if err != nil {
 		fmt.Printf("Recieved Heroku Deploy Webhook: %v\n", payload)
 	}
+	if payload.PrevHead == "" {
+		payload.PrevHead = heads[payload.App]
+		heads[payload.App] = payload.Head
+	}
 	return payload, err
 }
 
@@ -53,4 +58,18 @@ func (payload *HerokuWebhookPayload) Environment() string {
 	default:
 		return "development"
 	}
+}
+
+// Return a GitHub compare URL if the repository is configured, otherwise just return the plain URL.
+func (payload *HerokuWebhookPayload) URL() (url string) {
+	repo := GitHubRepo(payload.App)
+	if repo == "" {
+		url = payload.Url
+	} else {
+		url = fmt.Sprint("https://github.com/", repo)
+		if payload.PrevHead != "" {
+			url = fmt.Sprint(url, "/compare", payload.PrevHead, "...", payload.Head)
+		}
+	}
+	return url
 }
