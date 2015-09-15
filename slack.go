@@ -57,10 +57,10 @@ func SlackRequest(payload *HerokuWebhookPayload) *http.Request {
 		IconEmoji: ":heroku:",
 		Attachments: []slackAttachment{
 			{
-				Fallback:   payload.App,
+				Fallback:   fmt.Sprintf("%s deployed %s %s", payload.User, payload.App, payload.Release),
 				Color:      "#430098",
 				AuthorName: payload.User,
-				Text:       payload.GitLog,
+				Text:       fmt.Sprintf("``` %s ```", payload.GitLog),
 				Title:      fmt.Sprintf("%s %s", payload.App, payload.Release),
 				TitleLink:  payload.Url,
 				Fields: []slackField{
