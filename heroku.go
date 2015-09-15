@@ -16,6 +16,7 @@ var (
 	decoder          = schema.NewDecoder()
 	stagingRegexp    = regexp.MustCompile(`staging`)
 	productionRegexp = regexp.MustCompile(`production|\bprod\b`)
+	heads            = make(map[string]string)
 )
 
 func init() {
@@ -40,6 +41,10 @@ func ParseWebhook(r *http.Request) (payload *HerokuWebhookPayload, err error) {
 	err = decoder.Decode(payload, r.PostForm)
 	if err != nil {
 		fmt.Printf("Recieved Heroku Deploy Webhook: %v\n", payload)
+	}
+	if payload.PrevHead == "" {
+		payload.PrevHead = heads[payload.App]
+		heads[payload.App] = payload.Head
 	}
 	return payload, err
 }
