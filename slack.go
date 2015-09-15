@@ -51,7 +51,7 @@ type slackField struct {
 }
 
 func SlackRequest(payload *HerokuWebhookPayload) *http.Request {
-	j := slackMessage{
+	message := slackMessage{
 		UserName:  "Heroku Deployment",
 		IconUrl:   "https://d1ic07fwm32hlr.cloudfront.net/images/favicon.ico",
 		IconEmoji: ":heroku:",
@@ -65,11 +65,6 @@ func SlackRequest(payload *HerokuWebhookPayload) *http.Request {
 				TitleLink:  payload.Url,
 				Fields: []slackField{
 					{
-						Title: "Previous Commit",
-						Value: payload.PrevHead,
-						Short: true,
-					},
-					{
 						Title: "Current Commit",
 						Value: payload.Head,
 						Short: true,
@@ -79,7 +74,16 @@ func SlackRequest(payload *HerokuWebhookPayload) *http.Request {
 		},
 	}
 
-	jsonStr, _ := json.MarshalIndent(j, "", "  ")
+	if payload.PrevHead != "" {
+		field := slackField{
+			Title: "Previous Commit",
+			Value: payload.PrevHead,
+			Short: true,
+		}
+		message.Attachments[0].Fields = append(message.Attachments[0].Fields, field)
+	}
+
+	jsonStr, _ := json.MarshalIndent(message, "", "  ")
 	fmt.Printf("%s\n", jsonStr)
 	req, _ := http.NewRequest("POST", ENV["SLACK_URL"], bytes.NewBuffer(jsonStr))
 	req.Header.Set("Content-Type", "application/json")
