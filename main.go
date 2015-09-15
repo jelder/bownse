@@ -18,7 +18,7 @@ func init() {
 	decoder.IgnoreUnknownKeys(true)
 }
 
-func MuxHandler(w http.ResponseWriter, r *http.Request) {
+func WebhookHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 
 	if err != nil {
@@ -69,7 +69,7 @@ func handleOutboundRequest(service string, req *http.Request) {
 func main() {
 
 	r := mux.NewRouter()
-	r.HandleFunc("/"+config.Secret, MuxHandler).Methods("POST")
+	r.HandleFunc("/"+config.Secret, WebhookHandler).Methods("POST")
 	http.Handle("/", r)
 
 	n := negroni.Classic()
