@@ -54,3 +54,17 @@ func (payload *HerokuWebhookPayload) Environment() string {
 		return "development"
 	}
 }
+
+// Return a GitHub compare URL if the repository is configured, otherwise just return the plain URL.
+func (payload *HerokuWebhookPayload) URL() (url string) {
+	repo := GitHubRepo(payload.App)
+	if repo == "" {
+		url = payload.Url
+	} else {
+		url = fmt.Sprint("https://github.com/", repo)
+		if payload.PrevHead != "" {
+			url = fmt.Sprint(url, "/compare", payload.PrevHead, "...", payload.Head)
+		}
+	}
+	return url
+}
