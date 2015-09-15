@@ -4,53 +4,42 @@ import (
 	"fmt"
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/mux"
-	"github.com/gorilla/schema"
 	"github.com/phyber/negroni-gzip/gzip"
 	"net/http"
 )
 
 var (
-	decoder = schema.NewDecoder()
-	client  = &http.Client{}
+	client = &http.Client{}
 )
-
-func init() {
-	decoder.IgnoreUnknownKeys(true)
-}
 
 func WebhookHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
-
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	herokuWebhookPayload := new(HerokuWebhookPayload)
-	err = decoder.Decode(herokuWebhookPayload, r.PostForm)
+	payload, err := ParseWebhook(r)
 	if err != nil {
-		fmt.Printf("Raw Payload: %v\n", r.PostForm)
 		http.Error(w, err.Error(), 422)
 		return
 	}
 
-	fmt.Printf("Recieved Heroku Deploy Webhook: %v\n", herokuWebhookPayload)
-
 	if NewRelicIsConfigured() {
 		go func() {
-			handleOutboundRequest("NewRelic", NewRelicRequest(herokuWebhookPayload))
+			handleOutboundRequest("NewRelic", NewRelicRequest(payload))
 		}()
 	}
 
 	if HoneybadgerIsConfigured() {
 		go func() {
-			handleOutboundRequest("Honeybadger", HoneybadgerRequest(herokuWebhookPayload))
+			handleOutboundRequest("Honeybadger", HoneybadgerRequest(payload))
 		}()
 	}
 
 	if SlackIsConfigured() {
 		go func() {
-			handleOutboundRequest("Slack", SlackRequest(herokuWebhookPayload))
+			handleOutboundRequest("Slack", SlackRequest(payload))
 		}()
 	}
 

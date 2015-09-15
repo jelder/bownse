@@ -6,8 +6,21 @@
 package main
 
 import (
+	"fmt"
+	"github.com/gorilla/schema"
+	"net/http"
 	"regexp"
 )
+
+var (
+	decoder          = schema.NewDecoder()
+	stagingRegexp    = regexp.MustCompile(`staging`)
+	productionRegexp = regexp.MustCompile(`production|\bprod\b`)
+)
+
+func init() {
+	decoder.IgnoreUnknownKeys(true)
+}
 
 type HerokuWebhookPayload struct {
 	App      string `schema:"app"`
@@ -21,10 +34,15 @@ type HerokuWebhookPayload struct {
 	AppUUID  string `schema:"app_uuid"`
 }
 
-var (
-	stagingRegexp    = regexp.MustCompile(`staging`)
-	productionRegexp = regexp.MustCompile(`production|\bprod\b`)
-)
+func ParseWebhook(r *http.Request) (payload *HerokuWebhookPayload, err error) {
+	fmt.Printf("Raw Payload: %v\n", r.PostForm)
+	payload = new(HerokuWebhookPayload)
+	err = decoder.Decode(payload, r.PostForm)
+	if err != nil {
+		fmt.Printf("Recieved Heroku Deploy Webhook: %v\n", payload)
+	}
+	return payload, err
+}
 
 func (payload *HerokuWebhookPayload) Environment() string {
 	switch {
