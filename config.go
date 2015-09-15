@@ -1,9 +1,8 @@
 package main
 
 import (
-	. "github.com/jelder/bownse/env"
+	. "github.com/jelder/goenv"
 	"log"
-	"regexp"
 )
 
 type Config struct {
@@ -13,9 +12,7 @@ type Config struct {
 }
 
 var (
-	targetUrlRegexp = regexp.MustCompile(`^(\w+)_URL$`)
-	config          Config
-	ENV             EnvMap
+	config Config
 )
 
 func init() {

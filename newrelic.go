@@ -6,6 +6,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	. "github.com/jelder/goenv"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -29,7 +30,7 @@ func NewRelicRequest(payload *HerokuWebhookPayload) *http.Request {
 		"deployment[application_id]": {ENV["NEW_RELIC_ID"]},
 		"deployment[user]":           {payload.User},
 		"deployment[description]":    {fmt.Sprintf("%s %s", payload.App, payload.Release)},
-		"deployment[changelog]":      {payload.GitLog},
+		"deployment[changelog]":      {fmt.Sprintf("  %s", payload.GitLog)},
 		"deployment[revision]":       {payload.Head},
 	}
 
