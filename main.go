@@ -10,10 +10,13 @@ import (
 )
 
 var (
-	decoder  = schema.NewDecoder()
-	client   = &http.Client{}
-	outbound = make(chan *http.Request)
+	decoder = schema.NewDecoder()
+	client  = &http.Client{}
 )
+
+func init() {
+	decoder.IgnoreUnknownKeys(true)
+}
 
 func MuxHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
