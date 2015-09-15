@@ -28,7 +28,7 @@ func NewRelicRequest(payload *HerokuWebhookPayload) *http.Request {
 		"deployment[app_name]":       {ENV["NEW_RELIC_APP_NAME"]},
 		"deployment[application_id]": {ENV["NEW_RELIC_ID"]},
 		"deployment[user]":           {payload.User},
-		"deployment[description]":    {""},
+		"deployment[description]":    {fmt.Sprintf("%s %s", payload.App, payload.Release)},
 		"deployment[changelog]":      {payload.GitLog},
 		"deployment[revision]":       {payload.Head},
 	}
