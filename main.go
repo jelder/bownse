@@ -49,9 +49,9 @@ func WebhookHandler(w http.ResponseWriter, r *http.Request) {
 func handleOutboundRequest(service string, req *http.Request) {
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Printf("Error: %s %v\n", service, err)
+		fmt.Printf("Error: %s %+v\n", service, err)
 	} else {
-		fmt.Printf("OK: %s %v\n", service, resp)
+		fmt.Printf("OK: %s %+v\n", service, resp)
 	}
 }
 
