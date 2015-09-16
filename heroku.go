@@ -36,11 +36,10 @@ type HerokuWebhookPayload struct {
 }
 
 func ParseWebhook(r *http.Request) (payload *HerokuWebhookPayload, err error) {
-	fmt.Printf("Raw Payload: %v\n", r.PostForm)
 	payload = new(HerokuWebhookPayload)
 	err = decoder.Decode(payload, r.PostForm)
 	if err != nil {
-		fmt.Printf("Recieved Heroku Deploy Webhook: %v\n", payload)
+		fmt.Printf("Recieved Heroku Deploy Webhook: %+v\n", payload)
 	}
 	if payload.PrevHead == "" {
 		payload.PrevHead = heads[payload.App]
