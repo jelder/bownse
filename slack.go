@@ -43,6 +43,7 @@ type slackAttachment struct {
 	Fields     []slackField `json:"fields,omitempty"`
 	ImageThumb string       `json:"image_thumb,omitempty"`
 	ImageUrl   string       `json:"image_url,omitempty"`
+	MarkdownIn []string     `json:"mrkdwn_in,ommitempty`
 }
 
 type slackField struct {
@@ -64,6 +65,7 @@ func SlackRequest(payload *HerokuWebhookPayload) *http.Request {
 				Text:       fmt.Sprintf("```  %s ```", payload.GitLog),
 				Title:      fmt.Sprintf("%s %s", payload.App, payload.Release),
 				TitleLink:  payload.URL(),
+				MarkdownIn: []string{"text"},
 				Fields: []slackField{
 					{
 						Title: "Current Commit",
