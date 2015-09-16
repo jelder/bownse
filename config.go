@@ -29,11 +29,6 @@ func getSecret() (secret string) {
 	return secret
 }
 
-func getListenAddress() (port string) {
-	port = ENV["PORT"]
-	if port == "" {
-		return ":8080"
-	} else {
-		return ":" + port
-	}
+func getListenAddress() string {
+	return ":" + ENV.Get("PORT", "8080")
 }
