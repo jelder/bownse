@@ -62,7 +62,7 @@ func SlackRequest(payload *HerokuWebhookPayload) *http.Request {
 				Fallback:   fmt.Sprintf("%s deployed %s %s", payload.User, payload.App, payload.Release),
 				Color:      "#430098",
 				AuthorName: payload.User,
-				Text:       fmt.Sprintf("```  %s ```", payload.GitLog),
+				Text:       fmt.Sprintf("```\n %s\n```", payload.GitLog),
 				Title:      fmt.Sprintf("%s %s", payload.App, payload.Release),
 				TitleLink:  payload.URL(),
 				MarkdownIn: []string{"text"},
