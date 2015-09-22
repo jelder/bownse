@@ -67,7 +67,7 @@ func (payload *HerokuWebhookPayload) URL() (url string) {
 	} else {
 		url = fmt.Sprint("https://github.com/", repo)
 		if payload.PrevHead != "" {
-			url = fmt.Sprint(url, "/compare", payload.PrevHead, "...", payload.Head)
+			url = fmt.Sprint(url, "/compare/", payload.PrevHead, "...", payload.HeadLong)
 		}
 	}
 	return url
