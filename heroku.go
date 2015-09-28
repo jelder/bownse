@@ -6,8 +6,10 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gorilla/schema"
+	"log"
 	"net/http"
 	"regexp"
 )
@@ -17,11 +19,14 @@ var (
 	stagingRegexp    = regexp.MustCompile(`staging`)
 	productionRegexp = regexp.MustCompile(`production|\bprod\b`)
 	heads            = make(map[string]string)
+	client           = &http.Client{}
 )
 
 func init() {
 	decoder.IgnoreUnknownKeys(true)
 }
+
+type HerokuAppEnv map[string]string
 
 type HerokuWebhookPayload struct {
 	App      string `schema:"app"`
@@ -33,6 +38,7 @@ type HerokuWebhookPayload struct {
 	GitLog   string `schema:"git_log"`
 	Release  string `schema:"release"`
 	AppUUID  string `schema:"app_uuid"`
+	Env      map[string]string
 }
 
 func ParseWebhook(r *http.Request) (payload *HerokuWebhookPayload, err error) {
@@ -45,10 +51,17 @@ func ParseWebhook(r *http.Request) (payload *HerokuWebhookPayload, err error) {
 		payload.PrevHead = heads[payload.App]
 		heads[payload.App] = payload.Head
 	}
+	payload.FetchEnv(config.HerokuAuthToken)
 	return payload, err
 }
 
 func (payload *HerokuWebhookPayload) Environment() string {
+	if payload.Env["RAILS_ENV"] != "" {
+		return payload.Env["RAILS_ENV"] != ""
+	}
+	if payload.Env["RACK_ENV"] != "" {
+		return payload.Env["RACK_ENV"] != ""
+	}
 	switch {
 	case stagingRegexp.MatchString(payload.App):
 		return "staging"
@@ -65,10 +78,27 @@ func (payload *HerokuWebhookPayload) URL() (url string) {
 	if repo == "" {
 		url = payload.Url
 	} else {
-		url = fmt.Sprint("https://github.com/", repo)
+		url = "https://github.com/" + repo
 		if payload.PrevHead != "" {
 			url = fmt.Sprint(url, "/compare/", payload.PrevHead, "...", payload.HeadLong)
 		}
 	}
 	return url
+}
+
+func (payload *HerokuWebhookPayload) FetchEnv(string authTok) {
+	payload.Env = MustGetHerokuAppEnv(payload.App, authToken)
+}
+
+func MustGetHerokuAppEnv(appName string, authToken string) (appEnv *HerokuAppEnv) {
+	req, err := http.NewRequest("GET", "https://api.heroku.com/apps/"+appName+"/config-vars", nil)
+	req.Header.Add("Accept", "application/vnd.heroku+json; version=3")
+	req.Header.Add("Authorization", "Bearer "+authToken)
+	resp, err := client.Do(req)
+	defer resp.Body.Close()
+	if err != nil {
+		log.Panic(err)
+	}
+	json.NewDecoder(resp.Body).Decode(&appEnv)
+	return appEnv
 }
