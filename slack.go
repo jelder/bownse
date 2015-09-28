@@ -52,7 +52,7 @@ type slackField struct {
 	Short bool   `json:"short"`
 }
 
-func SlackRequest(payload *HerokuWebhookPayload) *http.Request {
+func SlackRequest(payload *HerokuAppState) *http.Request {
 	message := slackMessage{
 		UserName:  "Heroku Deployment",
 		IconUrl:   "https://d1ic07fwm32hlr.cloudfront.net/images/favicon.ico",

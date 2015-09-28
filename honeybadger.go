@@ -5,30 +5,18 @@ package main
 
 import (
 	"bytes"
-	"fmt"
-	. "github.com/jelder/goenvmap"
 	"net/http"
 	"net/url"
 	"strconv"
 )
 
-func init() {
-	if !HoneybadgerIsConfigured() {
-		fmt.Println("Honeybadger is not full configured")
-	}
-}
-
-func HoneybadgerIsConfigured() bool {
-	return ENV["HONEYBADGER_API_KEY"] != ""
-}
-
-func HoneybadgerRequest(payload *HerokuWebhookPayload) *http.Request {
+func HoneybadgerRequest(state *HerokuAppState) *http.Request {
 	urlStr := "https://api.honeybadger.io/v1/deploys"
 	params := url.Values{
-		"deploy[environment]":    {payload.Environment()},
-		"deploy[local_username]": {payload.User},
-		"deploy[revision]":       {payload.Head},
-		"api_key":                {ENV["HONEYBADGER_API_KEY"]},
+		"deploy[environment]":    {state.Environment()},
+		"deploy[local_username]": {state.User},
+		"deploy[revision]":       {state.Head},
+		"api_key":                {state.Env["HONEYBADGER_API_KEY"]},
 	}
 
 	req, _ := http.NewRequest("POST", urlStr, bytes.NewBufferString(params.Encode()))
