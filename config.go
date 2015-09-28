@@ -23,7 +23,7 @@ func init() {
 	config.HerokuAuthToken = getHerokuAuthToken()
 }
 
-func getHerokuAuthToken() authToken string {
+func getHerokuAuthToken() (authToken string) {
 	authToken = ENV["HEROKU_AUTH_TOKEN"]
 	if authToken == "" {
 		log.Fatal("HEROKU_AUTH_TOKEN is not set; cannot fetch your Heroku apps' ENV vars")

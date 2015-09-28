@@ -1,20 +1,34 @@
 # bownse
-How Heroku's deploy webhooks were supposed to work: Ping a bunch of relevant services after every deploy. Currently supports Slack, Honeybadger, and NewRelic.
+How Heroku's [deploy webhooks](https://devcenter.heroku.com/articles/deploy-hooks#http-post-hook) were supposed to work: Ping a bunch of relevant services after every deploy. Currently supports Slack, Honeybadger, and NewRelic. Hopefully this will become obsolete someday.
 
 [![Deploy to Heroku](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
 
-### GitHub Deployments
+## Setup
 
-Heroku doesn't expose (as far as I can tell) the mapping of app name to GitHub Repo and branch. Instead we have to configure this explicitly. Note that in this example, my app is _really_ called `myapp-production`, but due to environment variable identifier restrictions, the underscores have been replaced with hyphens.
+Once you've deployed your own copy of Bownse, configure all of your Heroku apps to use it. The URL will be the URL of your Bownse instance followed by the value `SECRET_KEY` ENV var. For example, it might look a lot like this:
 
-```bash
-heroku config:set GITHUB_REPO_myapp_production=jelder/myapp             --app my-bownse-instance
+```
+https://boundless-bownse.herokuapp.com/074585ce6ef2d8e457d31fc4af098bbdae039c640f041184f9b2488d60e19012
 ```
 
-In the future, we may support the GitHub Deployment Status API. Here's how that will work.
+Heroku doesn't expose the upstream GitHub respository name, so you will have to configure it manually as an ENV var in that app.
 
 ```bash
-heroku config:set GITHUB_USER=jelder                                    --app my-bownse-instance
-heroku config:set GITHUB_TOKEN=3fade40de99c370e46551ee53d18d50184824ec4 --app my-bownse-instance
+heroku config:set GITHUB_REPO=myname/myapp --app myapp
 ```
 
+Finally, you must tell your Bownse instance how to authenticate against Heroku to get the information it needs. It exclusively uses the `config-vars` endpoint and never modifies anything. More details here: https://devcenter.heroku.com/articles/platform-api-reference#config-vars
+
+```bash
+heroku config:set HEROKU_AUTH_TOKEN=$(heroku auth:token) --app my-bownse-instance
+```
+
+## Slack
+
+Bownse will figure everything out from your app's ENV vars, with one exception: Slack. Create an incoming webhook at https://boundless.slack.com/services/new/incoming-webhook, and then tell your Bownse instance about it:
+
+```bash
+heroku config:set SLACK_URL=https://hooks.slack.com/services/SDFDSFDSFDSF/SDFSDFDSFDSF/SDFDSFDSFSDFDSFDFD --app my-bownse-instance
+```
+
+If you don't use Slack, I envy you. It's a pretty mediocre system especially for developers. Pull requests welcome!

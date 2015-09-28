@@ -19,29 +19,21 @@ func WebhookHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	payload, err := ParseWebhook(r)
+	state, err := ParseWebhook(r)
 	if err != nil {
 		http.Error(w, err.Error(), 422)
 		return
 	}
 
-	if NewRelicIsConfigured() {
-		go func() {
-			handleOutboundRequest("NewRelic", NewRelicRequest(payload))
-		}()
-	}
-
-	if HoneybadgerIsConfigured() {
-		go func() {
-			handleOutboundRequest("Honeybadger", HoneybadgerRequest(payload))
-		}()
-	}
-
-	if SlackIsConfigured() {
-		go func() {
-			handleOutboundRequest("Slack", SlackRequest(payload))
-		}()
-	}
+	go func() {
+		handleOutboundRequest("NewRelic", NewRelicRequest(state))
+	}()
+	go func() {
+		handleOutboundRequest("Honeybadger", HoneybadgerRequest(state))
+	}()
+	go func() {
+		handleOutboundRequest("Slack", SlackRequest(state))
+	}()
 
 	w.WriteHeader(http.StatusAccepted)
 }
