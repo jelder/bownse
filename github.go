@@ -4,7 +4,7 @@ package main
 
 import (
 	"fmt"
-	. "github.com/jelder/goenv"
+	. "github.com/jelder/goenvmap"
 	"strings"
 )
 

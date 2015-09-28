@@ -1,5 +1,5 @@
 # goenv
-[![Circle CI](https://circleci.com/gh/jelder/env.svg?style=svg)](https://circleci.com/gh/jelder/env)
+[![Circle CI](https://circleci.com/gh/jelder/goenvmap.svg?style=svg)](https://circleci.com/gh/jelder/goenvmap)
 
 A convenience wrapper around `os.Environ` and `os.GetEnv`. Use `ENV[]` like you do in other languages, plus safety, default values, and typesafe getters.
 
