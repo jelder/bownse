@@ -6,7 +6,7 @@ package main
 import (
 	"bytes"
 	"fmt"
-	. "github.com/jelder/goenv"
+	. "github.com/jelder/goenvmap"
 	"net/http"
 	"net/url"
 	"strconv"

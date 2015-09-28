@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	. "github.com/jelder/goenv"
+	. "github.com/jelder/goenvmap"
 	"net/http"
 	"strconv"
 )
