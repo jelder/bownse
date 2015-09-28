@@ -19,7 +19,6 @@ var (
 	stagingRegexp    = regexp.MustCompile(`staging`)
 	productionRegexp = regexp.MustCompile(`production|\bprod\b`)
 	heads            = make(map[string]string)
-	client           = &http.Client{}
 )
 
 func init() {
@@ -28,7 +27,7 @@ func init() {
 
 type HerokuAppEnv map[string]string
 
-type HerokuWebhookPayload struct {
+type HerokuAppState struct {
 	App      string `schema:"app"`
 	User     string `schema:"user"`
 	Url      string `schema:"url"`
@@ -38,62 +37,63 @@ type HerokuWebhookPayload struct {
 	GitLog   string `schema:"git_log"`
 	Release  string `schema:"release"`
 	AppUUID  string `schema:"app_uuid"`
-	Env      map[string]string
+	Env      HerokuAppEnv
 }
 
-func ParseWebhook(r *http.Request) (payload *HerokuWebhookPayload, err error) {
-	payload = new(HerokuWebhookPayload)
-	err = decoder.Decode(payload, r.PostForm)
+func ParseWebhook(r *http.Request) (state *HerokuAppState, err error) {
+	state = new(HerokuAppState)
+	err = decoder.Decode(state, r.PostForm)
 	if err != nil {
-		fmt.Printf("Recieved Heroku Deploy Webhook: %+v\n", payload)
+		fmt.Printf("Recieved Heroku Deploy Webhook: %+v\n", state)
 	}
-	if payload.PrevHead == "" {
-		payload.PrevHead = heads[payload.App]
-		heads[payload.App] = payload.Head
+	if state.PrevHead == "" {
+		state.PrevHead = heads[state.App]
+		heads[state.App] = state.Head
 	}
-	payload.FetchEnv(config.HerokuAuthToken)
-	return payload, err
+	state.FetchEnv(config.HerokuAuthToken)
+	return state, err
 }
 
-func (payload *HerokuWebhookPayload) Environment() string {
-	if payload.Env["RAILS_ENV"] != "" {
-		return payload.Env["RAILS_ENV"] != ""
-	}
-	if payload.Env["RACK_ENV"] != "" {
-		return payload.Env["RACK_ENV"] != ""
-	}
-	switch {
-	case stagingRegexp.MatchString(payload.App):
-		return "staging"
-	case productionRegexp.MatchString(payload.App):
-		return "production"
-	default:
-		return "development"
+func (state *HerokuAppState) Environment() string {
+	if state.Env["RAILS_ENV"] != "" {
+		return state.Env["RAILS_ENV"]
+	} else if state.Env["RACK_ENV"] != "" {
+		return state.Env["RACK_ENV"]
+	} else {
+		switch {
+		case stagingRegexp.MatchString(state.App):
+			return "staging"
+		case productionRegexp.MatchString(state.App):
+			return "production"
+		default:
+			return "development"
+		}
 	}
 }
 
 // Return a GitHub compare URL if the repository is configured, otherwise just return the plain URL.
-func (payload *HerokuWebhookPayload) URL() (url string) {
-	repo := GitHubRepo(payload.App)
-	if repo == "" {
-		url = payload.Url
+func (state *HerokuAppState) URL() (url string) {
+	if state.Env["GITHUB_REPO"] == "" {
+		url = state.Url
 	} else {
-		url = "https://github.com/" + repo
-		if payload.PrevHead != "" {
-			url = fmt.Sprint(url, "/compare/", payload.PrevHead, "...", payload.HeadLong)
+		url = "https://github.com/" + state.Env["GITHUB_REPO"]
+		if state.PrevHead != "" {
+			url = fmt.Sprint(url, "/compare/", state.PrevHead, "...", state.HeadLong)
 		}
 	}
 	return url
 }
 
-func (payload *HerokuWebhookPayload) FetchEnv(string authTok) {
-	payload.Env = MustGetHerokuAppEnv(payload.App, authToken)
+func (state *HerokuAppState) FetchEnv(authToken string) {
+	state.Env = MustGetHerokuAppEnv(state.App, authToken)
 }
 
-func MustGetHerokuAppEnv(appName string, authToken string) (appEnv *HerokuAppEnv) {
+// https://devcenter.heroku.com/articles/platform-api-reference#config-vars
+func MustGetHerokuAppEnv(appName string, authToken string) (appEnv HerokuAppEnv) {
 	req, err := http.NewRequest("GET", "https://api.heroku.com/apps/"+appName+"/config-vars", nil)
 	req.Header.Add("Accept", "application/vnd.heroku+json; version=3")
 	req.Header.Add("Authorization", "Bearer "+authToken)
+	req.Header.Add("User-Agent", "Bownse: The Heroku Webhook Multiplexer")
 	resp, err := client.Do(req)
 	defer resp.Body.Close()
 	if err != nil {

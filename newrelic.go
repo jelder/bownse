@@ -6,25 +6,24 @@ package main
 import (
 	"bytes"
 	"fmt"
-	. "github.com/jelder/goenvmap"
 	"net/http"
 	"net/url"
 	"strconv"
 )
 
-func NewRelicRequest(payload *HerokuWebhookPayload) *http.Request {
+func NewRelicRequest(state *HerokuAppState) *http.Request {
 	urlStr := "https://api.newrelic.com/deployments.xml"
 	params := url.Values{
-		"deployment[app_name]":       {payload.Env["NEW_RELIC_APP_NAME"]},
-		"deployment[application_id]": {payload.Env["NEW_RELIC_ID"]},
-		"deployment[user]":           {payload.User},
-		"deployment[description]":    {fmt.Sprintf("%s %s", payload.App, payload.Release)},
-		"deployment[changelog]":      {fmt.Sprintf("  %s", payload.GitLog)},
-		"deployment[revision]":       {payload.Head},
+		"deployment[app_name]":       {state.Env["NEW_RELIC_APP_NAME"]},
+		"deployment[application_id]": {state.Env["NEW_RELIC_ID"]},
+		"deployment[user]":           {state.User},
+		"deployment[description]":    {fmt.Sprintf("%s %s", state.App, state.Release)},
+		"deployment[changelog]":      {fmt.Sprintf("  %s", state.GitLog)},
+		"deployment[revision]":       {state.Head},
 	}
 
 	req, _ := http.NewRequest("POST", urlStr, bytes.NewBufferString(params.Encode()))
-	req.Header.Add("x-api-key", payload.Env["NEW_RELIC_API_KEY"])
+	req.Header.Add("x-api-key", state.Env["NEW_RELIC_API_KEY"])
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Add("Content-Length", strconv.Itoa(len(params.Encode())))
 
