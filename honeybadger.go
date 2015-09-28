@@ -12,23 +12,13 @@ import (
 	"strconv"
 )
 
-func init() {
-	if !HoneybadgerIsConfigured() {
-		fmt.Println("Honeybadger is not full configured")
-	}
-}
-
-func HoneybadgerIsConfigured() bool {
-	return ENV["HONEYBADGER_API_KEY"] != ""
-}
-
 func HoneybadgerRequest(payload *HerokuWebhookPayload) *http.Request {
 	urlStr := "https://api.honeybadger.io/v1/deploys"
 	params := url.Values{
 		"deploy[environment]":    {payload.Environment()},
 		"deploy[local_username]": {payload.User},
 		"deploy[revision]":       {payload.Head},
-		"api_key":                {ENV["HONEYBADGER_API_KEY"]},
+		"api_key":                {payload.Env["HONEYBADGER_API_KEY"]},
 	}
 
 	req, _ := http.NewRequest("POST", urlStr, bytes.NewBufferString(params.Encode()))

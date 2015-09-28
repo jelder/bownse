@@ -6,9 +6,10 @@ import (
 )
 
 type Config struct {
-	Secret        string
-	ListenAddress string
-	TargetURLs    []string
+	Secret          string
+	ListenAddress   string
+	TargetURLs      []string
+	HerokuAuthToken string
 }
 
 var (
@@ -19,6 +20,15 @@ func init() {
 	ENV = MustLoadEnv()
 	config.Secret = getSecret()
 	config.ListenAddress = getListenAddress()
+	config.HerokuAuthToken = getHerokuAuthToken()
+}
+
+func getHerokuAuthToken() authToken string {
+	authToken = ENV["HEROKU_AUTH_TOKEN"]
+	if authToken == "" {
+		log.Fatal("HEROKU_AUTH_TOKEN is not set; cannot fetch your Heroku apps' ENV vars")
+	}
+	return authToken
 }
 
 func getSecret() (secret string) {
