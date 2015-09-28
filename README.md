@@ -1,7 +1,7 @@
 # bownse
 How Heroku's [deploy webhooks](https://devcenter.heroku.com/articles/deploy-hooks#http-post-hook) were supposed to work: Ping a bunch of relevant services after every deploy. Bownse sits between Heroku and your addons, sending artisnal webhooks to your team chat, application performance monitors, and error trackers.
 
-Currently supports Slack, Honeybadger, and NewRelic. Hopefully this will become obsolete someday.
+Currently supports Slack, Honeybadger, and NewRelic.
 
 You can launch your own private Bownse instance from this button.
 
