@@ -29,10 +29,6 @@ heroku config:set HEROKU_AUTH_TOKEN=$(heroku auth:token) --app my-bownse-instanc
 
 ## Slack
 
-Bownse will figure everything out from your app's ENV vars, with one exception: Slack. Create an incoming webhook at https://boundless.slack.com/services/new/incoming-webhook, and then tell your Bownse instance about it:
-
-```bash
-heroku config:set SLACK_URL=https://hooks.slack.com/services/SDFDSFDSFDSF/SDFSDFDSFDSF/SDFDSFDSFSDFDSFDFD --app my-bownse-instance
-```
+Bownse will figure everything out from your app's ENV vars, with one exception: Slack. Create an incoming webhook at https://boundless.slack.com/services/new/incoming-webhook, and then tell your Bownse instance about it by setting the `SLACK_URL` ENV var.
 
 If you don't use Slack, I envy you. It's a pretty mediocre system especially for developers. Pull requests welcome!
