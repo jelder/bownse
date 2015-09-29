@@ -1,6 +1,6 @@
 {
   "name": "Bownse",
-  "description": "HTTP web hook multiplexer",
+  "description": "The Heroku Webhook Multiplexer",
   "keywords": [
     "bownse",
     "go",
@@ -10,12 +10,22 @@
   ],
   "website": "http://github.com/jelder/bownse",
   "repository": "http://github.com/jelder/bownse",
+  "success_url": "https://github.com/jelder/bownse/blob/master/README.md"
   "scripts": {},
   "env": {
     "BUILDPACK_URL": "https://github.com/heroku/heroku-buildpack-go",
     "SECRET_KEY": {
-      "description": "The basis for the private URL",
+      "description": "This will be the path component of your webhook URL",
       "generator": "secret"
+    },
+    "HEROKU_AUTH_TOKEN": {
+      "description": "Set this to the value of `heroku auth:token`",
+    },
+    "SLACK_URL": {
+      "description": "See https://boundless.slack.com/services/new/incoming-webhook"
     }
-  }
+  },
+  "addons": [
+    "heroku-redis:hobby-dev"
+  ]
 }
