@@ -52,23 +52,23 @@ type slackField struct {
 	Short bool   `json:"short"`
 }
 
-func SlackRequest(payload *HerokuAppState) *http.Request {
+func SlackRequest(state *HerokuAppState) *http.Request {
 	message := slackMessage{
 		UserName:  "Heroku Deployment",
 		IconUrl:   "https://d1ic07fwm32hlr.cloudfront.net/images/favicon.ico",
 		IconEmoji: ":heroku:",
 		Attachments: []slackAttachment{
 			{
-				Fallback:   fmt.Sprintf("%s deployed %s %s", payload.User, payload.App, payload.Release),
+				Fallback:   fmt.Sprintf("%s deployed %s %s", state.User, state.App, state.Release),
 				Color:      "#430098",
-				AuthorName: payload.User,
-				Text:       fmt.Sprintf(" %s\n", payload.GitLog),
-				Title:      fmt.Sprintf("%s %s", payload.App, payload.Release),
-				TitleLink:  payload.URL(),
+				AuthorName: state.User,
+				Text:       fmt.Sprintf(" %s\n", state.GitLog),
+				Title:      fmt.Sprintf("%s %s", state.App, state.Release),
+				TitleLink:  state.URL(),
 				Fields: []slackField{
 					{
 						Title: "Current Commit",
-						Value: payload.Head,
+						Value: state.Head,
 						Short: true,
 					},
 				},
@@ -76,10 +76,10 @@ func SlackRequest(payload *HerokuAppState) *http.Request {
 		},
 	}
 
-	if payload.PrevHead != "" {
+	if state.PrevHead != "" {
 		field := slackField{
 			Title: "Previous Commit",
-			Value: payload.PrevHead,
+			Value: state.PrevHead,
 			Short: true,
 		}
 		message.Attachments[0].Fields = append(message.Attachments[0].Fields, field)

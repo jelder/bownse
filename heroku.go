@@ -28,16 +28,17 @@ func init() {
 type HerokuAppEnv map[string]string
 
 type HerokuAppState struct {
-	App      string `schema:"app"`
-	User     string `schema:"user"`
-	Url      string `schema:"url"`
-	Head     string `schema:"head"`
-	HeadLong string `schema:"head_long"`
-	PrevHead string `schema:"prev_head"`
-	GitLog   string `schema:"git_log"`
-	Release  string `schema:"release"`
-	UUID     string `schema:"app_uuid"`
-	Env      HerokuAppEnv
+	App         string `schema:"app"`
+	User        string `schema:"user"`
+	Url         string `schema:"url"`
+	Head        string `schema:"head"`
+	HeadLong    string `schema:"head_long"`
+	PrevHead    string `schema:"prev_head"`
+	GitLog      string `schema:"git_log"`
+	Release     string `schema:"release"`
+	UUID        string `schema:"app_uuid"`
+	Environment string
+	Env         HerokuAppEnv
 }
 
 // Given a request for Heroku DeployHook, return the current state of the app. This will include all fields from the request, all ENV vars for the app, and the commit hash of the previously deployed commit.
@@ -45,26 +46,28 @@ func ParseWebhook(r *http.Request) (state *HerokuAppState, err error) {
 	state = new(HerokuAppState)
 	err = decoder.Decode(state, r.PostForm)
 	if err != nil {
-		fmt.Printf("Recieved Heroku Deploy Webhook: %+v\n", state)
+		fmt.Printf("Problem parsing webhook:", err)
 	}
 	state.SetPrevHead()
 	state.FetchEnv()
+	state.GuessEnvironment()
+	fmt.Printf("%#v\n", state)
 	return state, err
 }
 
-func (state *HerokuAppState) Environment() string {
+func (state *HerokuAppState) GuessEnvironment() {
 	if state.Env["RAILS_ENV"] != "" {
-		return state.Env["RAILS_ENV"]
+		state.Environment = state.Env["RAILS_ENV"]
 	} else if state.Env["RACK_ENV"] != "" {
-		return state.Env["RACK_ENV"]
+		state.Environment = state.Env["RACK_ENV"]
 	} else {
 		switch {
 		case stagingRegexp.MatchString(state.App):
-			return "staging"
+			state.Environment = "staging"
 		case productionRegexp.MatchString(state.App):
-			return "production"
+			state.Environment = "production"
 		default:
-			return "development"
+			state.Environment = "development"
 		}
 	}
 }
@@ -84,7 +87,7 @@ func (state *HerokuAppState) URL() (url string) {
 
 func (state *HerokuAppState) SetPrevHead() {
 	if state.PrevHead != "" {
-		fmt.Printf("Heroku finally started sending PrevHead!")
+		fmt.Printf("Heroku finally started sending PrevHead!\n")
 		return
 	}
 	conn := RedisPool.Get()

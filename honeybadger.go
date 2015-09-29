@@ -13,7 +13,7 @@ import (
 func HoneybadgerRequest(state *HerokuAppState) *http.Request {
 	urlStr := "https://api.honeybadger.io/v1/deploys"
 	params := url.Values{
-		"deploy[environment]":    {state.Environment()},
+		"deploy[environment]":    {state.Environment},
 		"deploy[local_username]": {state.User},
 		"deploy[revision]":       {state.Head},
 		"api_key":                {state.Env["HONEYBADGER_API_KEY"]},
