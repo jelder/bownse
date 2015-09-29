@@ -1,4 +1,6 @@
 # bownse
+[![Circle CI](https://circleci.com/gh/jelder/bownse.svg?style=svg)](https://circleci.com/gh/jelder/bownse)
+
 How Heroku's [deploy webhooks](https://devcenter.heroku.com/articles/deploy-hooks#http-post-hook) were supposed to work: Ping a bunch of relevant services after every deploy. Bownse sits between Heroku and your addons, sending artisnal webhooks to your team chat, application performance monitors, and error trackers.
 
 Currently supports Slack, Honeybadger, and NewRelic.
