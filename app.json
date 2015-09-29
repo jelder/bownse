@@ -10,8 +10,7 @@
   ],
   "website": "http://github.com/jelder/bownse",
   "repository": "http://github.com/jelder/bownse",
-  "success_url": "https://github.com/jelder/bownse/blob/master/README.md"
-  "scripts": {},
+  "success_url": "https://github.com/jelder/bownse/blob/master/README.md",
   "env": {
     "BUILDPACK_URL": "https://github.com/heroku/heroku-buildpack-go",
     "SECRET_KEY": {
@@ -19,7 +18,7 @@
       "generator": "secret"
     },
     "HEROKU_AUTH_TOKEN": {
-      "description": "Set this to the value of `heroku auth:token`",
+      "description": "Set this to the value of `heroku auth:token`"
     },
     "SLACK_URL": {
       "description": "See https://boundless.slack.com/services/new/incoming-webhook"
