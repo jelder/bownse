@@ -8,6 +8,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/garyburd/redigo/redis"
 	"github.com/gorilla/schema"
 	"log"
 	"net/http"
@@ -18,7 +19,6 @@ var (
 	decoder          = schema.NewDecoder()
 	stagingRegexp    = regexp.MustCompile(`staging`)
 	productionRegexp = regexp.MustCompile(`production|\bprod\b`)
-	heads            = make(map[string]string)
 )
 
 func init() {
@@ -36,21 +36,19 @@ type HerokuAppState struct {
 	PrevHead string `schema:"prev_head"`
 	GitLog   string `schema:"git_log"`
 	Release  string `schema:"release"`
-	AppUUID  string `schema:"app_uuid"`
+	UUID     string `schema:"app_uuid"`
 	Env      HerokuAppEnv
 }
 
+// Given a request for Heroku DeployHook, return the current state of the app. This will include all fields from the request, all ENV vars for the app, and the commit hash of the previously deployed commit.
 func ParseWebhook(r *http.Request) (state *HerokuAppState, err error) {
 	state = new(HerokuAppState)
 	err = decoder.Decode(state, r.PostForm)
 	if err != nil {
 		fmt.Printf("Recieved Heroku Deploy Webhook: %+v\n", state)
 	}
-	if state.PrevHead == "" {
-		state.PrevHead = heads[state.App]
-		heads[state.App] = state.Head
-	}
-	state.FetchEnv(config.HerokuAuthToken)
+	state.SetPrevHead()
+	state.FetchEnv()
 	return state, err
 }
 
@@ -84,13 +82,25 @@ func (state *HerokuAppState) URL() (url string) {
 	return url
 }
 
-func (state *HerokuAppState) FetchEnv(authToken string) {
-	state.Env = MustGetHerokuAppEnv(state.App, authToken)
+func (state *HerokuAppState) SetPrevHead() {
+	if state.PrevHead != "" {
+		fmt.Printf("Heroku finally started sending PrevHead!")
+		return
+	}
+	conn := RedisPool.Get()
+	defer conn.Close()
+	key := fmt.Sprintf("%s:%s", state.UUID, "commit")
+	state.PrevHead, _ = redis.String(conn.Do("GET", key))
+	conn.Do("Set", key, state.Head)
+}
+
+func (state *HerokuAppState) FetchEnv() {
+	state.Env = MustGetHerokuAppEnv(state.UUID, config.HerokuAuthToken)
 }
 
 // https://devcenter.heroku.com/articles/platform-api-reference#config-vars
-func MustGetHerokuAppEnv(appName string, authToken string) (appEnv HerokuAppEnv) {
-	req, err := http.NewRequest("GET", "https://api.heroku.com/apps/"+appName+"/config-vars", nil)
+func MustGetHerokuAppEnv(appNameOrUuid string, authToken string) (appEnv HerokuAppEnv) {
+	req, err := http.NewRequest("GET", "https://api.heroku.com/apps/"+appNameOrUuid+"/config-vars", nil)
 	req.Header.Add("Accept", "application/vnd.heroku+json; version=3")
 	req.Header.Add("Authorization", "Bearer "+authToken)
 	req.Header.Add("User-Agent", "Bownse: The Heroku Webhook Multiplexer")
