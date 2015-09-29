@@ -23,7 +23,7 @@ func NewRelicRequest(state *HerokuAppState) *http.Request {
 	}
 
 	req, _ := http.NewRequest("POST", urlStr, bytes.NewBufferString(params.Encode()))
-	req.Header.Add("x-api-key", state.Env["NEW_RELIC_API_KEY"])
+	req.Header.Add("x-api-key", state.Env["NEW_RELIC_LICENSE_KEY"])
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Add("Content-Length", strconv.Itoa(len(params.Encode())))
 
