@@ -31,4 +31,12 @@ heroku config:set HEROKU_AUTH_TOKEN=$(heroku auth:token) --app my-bownse-instanc
 
 Bownse will figure everything out from your app's ENV vars, with one exception: Slack. Create an incoming webhook at https://boundless.slack.com/services/new/incoming-webhook, and then tell your Bownse instance about it by setting the `SLACK_URL` ENV var.
 
-If you don't use Slack, I envy you. It's a pretty mediocre system especially for developers. Pull requests welcome!
+If you don't use Slack, I envy you. It's a pretty mediocre system especially for developers. 
+
+## Contributing
+
+1. Fork it
+2. Create your feature branch (`git checkout -b my-new-feature`)
+3. Commit your changes (`git commit -am 'Add some feature'`)
+4. Push to the branch (`git push origin my-new-feature`)
+5. Create new Pull Request
