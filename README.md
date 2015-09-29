@@ -36,6 +36,7 @@ Bownse will figure everything out from your app's ENV vars, with one exception: 
 If you don't use Slack, I envy you. It's a pretty mediocre system especially for developers. 
 
 ## Contributing
+Obviously, you are expected to follow the [contributor code of conduct](http://contributor-covenant.org/version/1/0/0/).
 
 1. Fork it
 2. Create your feature branch (`git checkout -b my-new-feature`)
