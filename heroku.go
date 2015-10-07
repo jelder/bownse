@@ -32,7 +32,8 @@ type HerokuAppEnv map[string]string
 type HerokuAppState struct {
 	App         string `schema:"app"`
 	User        string `schema:"user"`
-	Url         string `schema:"url"`
+	HerokuURL   string `schema:"url"`
+	URL         string
 	Head        string `schema:"head"`
 	HeadLong    string `schema:"head_long"`
 	PrevHead    string `schema:"prev_head"`
@@ -51,6 +52,7 @@ func ParseWebhook(r *http.Request) (state *HerokuAppState, err error) {
 		fmt.Printf("Problem parsing webhook:", err)
 	}
 	state.SetPrevHead()
+	state.SetURL()
 	state.FetchEnv()
 	state.GuessEnvironment()
 	fmt.Printf("%#v\n", state)
@@ -74,17 +76,15 @@ func (state *HerokuAppState) GuessEnvironment() {
 	}
 }
 
-// Return a GitHub compare URL if the repository is configured, otherwise just return the plain URL.
-func (state *HerokuAppState) URL() (url string) {
+func (state *HerokuAppState) SetURL() {
 	if state.Env["GITHUB_REPO"] == "" {
-		url = state.Url
+		state.URL = state.HerokuURL
 	} else {
-		url = "https://github.com/" + state.Env["GITHUB_REPO"]
+		state.URL = "https://github.com/" + state.Env["GITHUB_REPO"]
 		if state.PrevHead != "" {
-			url = fmt.Sprint(url, "/compare/", state.PrevHead, "...", state.HeadLong)
+			state.URL = fmt.Sprint(state.URL, "/compare/", state.PrevHead, "...", state.HeadLong)
 		}
 	}
-	return url
 }
 
 func (state *HerokuAppState) SetPrevHead() {
@@ -104,8 +104,8 @@ func (state *HerokuAppState) FetchEnv() {
 }
 
 // https://devcenter.heroku.com/articles/platform-api-reference#config-vars
-func MustGetHerokuAppEnv(appNameOrUuid string, authToken string) (appEnv HerokuAppEnv) {
-	req, err := http.NewRequest("GET", "https://api.heroku.com/apps/"+appNameOrUuid+"/config-vars", nil)
+func MustGetHerokuAppEnv(appNameOrUUID string, authToken string) (appEnv HerokuAppEnv) {
+	req, err := http.NewRequest("GET", "https://api.heroku.com/apps/"+appNameOrUUID+"/config-vars", nil)
 	req.Header.Add("Accept", "application/vnd.heroku+json; version=3")
 	req.Header.Add("Authorization", "Bearer "+authToken)
 	req.Header.Add("User-Agent", "Bownse: The Heroku Webhook Multiplexer")

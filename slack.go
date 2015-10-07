@@ -64,7 +64,7 @@ func SlackRequest(state *HerokuAppState) *http.Request {
 				AuthorName: state.User,
 				Text:       fmt.Sprintf(" %s\n", state.GitLog),
 				Title:      fmt.Sprintf("%s %s", state.App, state.Release),
-				TitleLink:  state.URL(),
+				TitleLink:  state.URL,
 				Fields: []slackField{
 					{
 						Title: "Current Commit",
