@@ -59,6 +59,7 @@ func ParseWebhook(r *http.Request) (state *HerokuAppState, err error) {
 	return state, err
 }
 
+// GuessEnvironment will set the environment based on some heuristic assumptions
 func (state *HerokuAppState) GuessEnvironment() {
 	if state.Env["RAILS_ENV"] != "" {
 		state.Environment = state.Env["RAILS_ENV"]
@@ -76,6 +77,7 @@ func (state *HerokuAppState) GuessEnvironment() {
 	}
 }
 
+// SetURL will assign state.URL to either the Heroku app's URL, the GitHub repo, or the actual compare page for this changeset.
 func (state *HerokuAppState) SetURL() {
 	if state.Env["GITHUB_REPO"] == "" {
 		state.URL = state.HerokuURL
@@ -87,6 +89,7 @@ func (state *HerokuAppState) SetURL() {
 	}
 }
 
+// SetPrevHead is necessary because Heroku randomly does not include this field sometimes, so we have to store it in redis.
 func (state *HerokuAppState) SetPrevHead() {
 	if state.PrevHead != "" {
 		fmt.Printf("Heroku finally started sending PrevHead!\n")
@@ -99,10 +102,12 @@ func (state *HerokuAppState) SetPrevHead() {
 	conn.Do("Set", key, state.Head)
 }
 
+// Add this app's ENV to the state object.
 func (state *HerokuAppState) FetchEnv() {
 	state.Env = MustGetHerokuAppEnv(state.UUID, config.HerokuAuthToken)
 }
 
+// MustGetHerokuAppEnv fetches all of the given app's ENV vars from Heroku's PlatformAPI. Hope the users of this code trust the authors!
 // https://devcenter.heroku.com/articles/platform-api-reference#config-vars
 func MustGetHerokuAppEnv(appNameOrUUID string, authToken string) (appEnv HerokuAppEnv) {
 	req, err := http.NewRequest("GET", "https://api.heroku.com/apps/"+appNameOrUUID+"/config-vars", nil)
