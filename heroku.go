@@ -25,8 +25,10 @@ func init() {
 	decoder.IgnoreUnknownKeys(true)
 }
 
+// HerokuAppEnv contains all ENV vars from the app
 type HerokuAppEnv map[string]string
 
+// HerokuAppState includes all fields from the request, all ENV vars for the app, and the commit hash of the previously deployed commit.
 type HerokuAppState struct {
 	App         string `schema:"app"`
 	User        string `schema:"user"`
@@ -41,7 +43,7 @@ type HerokuAppState struct {
 	Env         HerokuAppEnv
 }
 
-// Given a request for Heroku DeployHook, return the current state of the app. This will include all fields from the request, all ENV vars for the app, and the commit hash of the previously deployed commit.
+// ParseWebhook return the current state of the app given a webhook payload.
 func ParseWebhook(r *http.Request) (state *HerokuAppState, err error) {
 	state = new(HerokuAppState)
 	err = decoder.Decode(state, r.PostForm)
