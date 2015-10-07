@@ -13,7 +13,7 @@ var (
 	client = &http.Client{}
 )
 
-func WebhookHandler(w http.ResponseWriter, r *http.Request) {
+func webhookHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -51,7 +51,7 @@ func handleOutboundRequest(service string, req *http.Request) {
 func main() {
 
 	r := mux.NewRouter()
-	r.HandleFunc("/"+config.Secret, WebhookHandler).Methods("POST")
+	r.HandleFunc("/"+config.Secret, webhookHandler).Methods("POST")
 	http.Handle("/", r)
 
 	n := negroni.Classic()
